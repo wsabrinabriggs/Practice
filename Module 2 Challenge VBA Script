@@ -1,0 +1,195 @@
+Sub ticker_symbol()
+Dim ws As Worksheet
+For Each ws In Worksheets
+    ws.Range("I1") = "Ticker Symbol"
+    Dim lastRow As Long
+    lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    Dim sumRow As Long
+    sumRow = 2
+
+        For i = 2 To lastRow
+            If ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1).Value Then
+            ws.Cells(sumRow, 9).Value = ws.Cells(i, 1).Value
+            sumRow = sumRow + 1
+        End If
+        Next i
+    ws.Activate
+    
+Next
+
+End Sub
+
+
+Sub yearly_change()
+Dim ws As Worksheet
+For Each ws In Worksheets
+
+    ws.Range("J1") = "Opening Price"
+    ws.Range("K1") = "Closing Price"
+    ws.Range("L1") = "Yearly Change"
+
+    'Find the opening price of each ticker
+    Dim lastRow As Long
+    lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    Dim olastRow As Double
+    olastRow = ws.Cells(Rows.Count, 3).End(xlUp).Row
+    
+    Dim sumRow As Long
+    sumRow = 2
+
+    For i = 2 To lastRow
+        If ws.Cells(i, 1).Value <> ws.Cells(i - 1, 1) Then
+            ws.Cells(sumRow, 10).Value = ws.Cells(i, 3).Value
+        ElseIf ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1) Then
+            ws.Cells(sumRow, 11).Value = ws.Cells(i, 6).Value
+            sumRow = sumRow + 1
+        End If
+    Next i
+    
+    'Subtract opening price from closing price
+    Dim newlastRow As Long
+    newlastRow = ws.Cells(Rows.Count, 9).End(xlUp).Row
+    Dim oprice As Double
+    Dim cprice As Double
+    For i = 2 To newlastRow
+        oprice = ws.Cells(i, 10).Value
+        cprice = ws.Cells(i, 11).Value
+        ws.Cells(i, 12).Value = cprice - oprice
+    Next i
+
+    ws.Range("M1") = "%age Change"
+    For i = 2 To newlastRow
+        oprice = ws.Cells(i, 10).Value
+        cprice = ws.Cells(i, 11).Value
+        ws.Cells(i, 13).Value = ((cprice - oprice) / oprice)
+        ws.Cells(i, 13).NumberFormat = "0.00%"
+        
+        If ws.Cells(i, 12).Value < 0 Then
+        ws.Cells(i, 12).Interior.ColorIndex = 3
+        Else
+        ws.Cells(i, 12).Interior.ColorIndex = 4
+        End If
+        
+    Next i
+ws.Activate
+Next
+End Sub
+
+Sub stock_volume()
+Dim ws As Worksheet
+For Each ws In Worksheets
+
+ws.Range("N1") = "Total Stock Vol."
+Dim lastRow As Long
+lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+Dim sumRow As Long
+sumRow = 2
+
+For i = 2 To lastRow
+    TotalStockVolume = TotalStockVolume + ws.Cells(i, 7)
+
+'check if we're still within the same ticker symbol
+    If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+        ws.Cells(sumRow, 14).Value = ws.Cells(i, 7).Value
+'update Total Stock Vol. column
+ws.Cells(sumRow, 14).Value = TotalStockVolume
+
+sumRow = sumRow + 1
+
+TotalStockVolume = 0
+        
+    End If
+Next i
+ws.Activate
+Next
+End Sub
+
+
+Sub functionality_gpi()
+Dim ws As Worksheet
+For Each ws In Worksheets
+
+ws.Range("Q1").Value = "ticker symbol"
+ws.Range("R1").Value = "value"
+ws.Range("P2").Value = "Greatest % increase"
+ws.Range("P3").Value = "Greatest % decrease"
+ws.Range("P4").Value = "Greatest Total Vol."
+
+Dim flastRow As Long
+flastRow = ws.Cells(Rows.Count, 13).End(xlUp).Row
+Dim sumRow As Integer
+sumRow = 2
+Dim gpi As Double
+gpi = 0
+Dim ticker_gpi As String
+
+    For i = 2 To flastRow
+        If ws.Cells(i, 13).Value > gpi Then gpi = ws.Cells(sumRow, 13).Value
+        ws.Cells(2, 18).Value = gpi
+        ws.Cells(2, 18).NumberFormat = "0.00%"
+        
+        'print matching ticker symbol
+        If gpi = ws.Cells(i, 13).Value Then ticker_gpi = ws.Cells(i, 9).Value
+        ws.Cells(2, 17) = ticker_gpi
+        
+        sumRow = sumRow + 1
+        
+    Next i
+        
+ws.Activate
+Next
+End Sub
+
+
+Sub functionality_gpd()
+Dim ws As Worksheet
+For Each ws In Worksheets
+
+Dim flastRow As Long
+flastRow = ws.Cells(Rows.Count, 13).End(xlUp).Row
+Dim sumRow As Integer
+sumRow = 2
+Dim gpd As Double
+gpd = 0
+    For i = 2 To flastRow
+        If ws.Cells(i, 13).Value < gpd Then gpd = ws.Cells(sumRow, 13).Value
+        ws.Cells(3, 18).Value = gpd
+        ws.Cells(3, 18).NumberFormat = "0.00%"
+        
+        'print matching ticker symbol
+        If gpd = ws.Cells(i, 13).Value Then ticker_gpi = ws.Cells(i, 9).Value
+        ws.Cells(3, 17) = ticker_gpi
+        
+        sumRow = sumRow + 1
+    Next i
+ws.Activate
+Next
+End Sub
+
+Sub functionality_gtv()
+Dim ws As Worksheet
+For Each ws In Worksheets
+ 
+Dim gtvlastRow As Long
+gtvlastRow = ws.Cells(Rows.Count, 14).End(xlUp).Row
+Dim sumRow As Long
+sumRow = 2
+Dim gtv As Variant
+gtv = 0
+Dim ticker_gtv As String
+
+For i = sumRow To gtvlastRow
+    If ws.Cells(i, 14).Value > gtv Then gtv = ws.Cells(sumRow, 14).Value
+    ws.Cells(4, 18).Value = gtv
+    
+    'print matching ticker symbol
+        If gtv = ws.Cells(i, 14).Value Then ticker_gtv = ws.Cells(i, 9).Value
+        ws.Cells(4, 17) = ticker_gtv
+    
+    sumRow = sumRow + 1
+Next i
+
+ws.Activate
+Next
+End Sub
+
